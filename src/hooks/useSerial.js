@@ -1,10 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 export function useSerial() {
+  const [connectionMode, setConnectionMode] = useState("usb"); // 'usb' or 'wifi'
+  const [ipAddress, setIpAddress] = useState("192.168.4.1");
   const [port, setPort] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [baudRate, setBaudRate] = useState(115200);
-  const [lineEnding, setLineEnding] = useState("\n"); // '\n', '\r\n', or ''
+  const [lineEnding, setLineEnding] = useState("\n");
   const [logs, setLogs] = useState([]);
   const [lastAck, setLastAck] = useState(null);
   const [lastAckTime, setLastAckTime] = useState(null);
@@ -33,7 +35,7 @@ export function useSerial() {
       fractionalSecondDigits: 3,
     });
     setLogs((prev) => [
-      ...prev.slice(-999), // Keep max 1000 log lines for dev debug
+      ...prev.slice(-999),
       {
         id: Date.now() + Math.random(),
         time: timeStr,
@@ -48,7 +50,6 @@ export function useSerial() {
     setLogs([]);
   }, []);
 
-  // Export logs to TXT or JSON file
   const exportLogs = useCallback(
     (format = "txt") => {
       if (logs.length === 0) return;
@@ -76,7 +77,7 @@ export function useSerial() {
     [logs],
   );
 
-  // Continuous background serial reader loop
+  // USB Serial reading loop
   const readSerialLoop = useCallback(
     async (currentPort) => {
       if (!currentPort || !currentPort.readable) return;
@@ -100,7 +101,7 @@ export function useSerial() {
             setRxBytes((b) => b + value.byteLength);
             buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split("\n");
-            buffer = lines.pop(); // Retain incomplete line fragment in buffer
+            buffer = lines.pop();
 
             for (const line of lines) {
               const trimmed = line.trim();
@@ -131,41 +132,78 @@ export function useSerial() {
         try {
           reader.releaseLock();
         } catch (e) {
-          // ignore if already released
+          // ignore
         }
       }
     },
     [addLog],
   );
 
-  // Connect to Serial Port
+  // Connect via Wi-Fi AP
+  const connectWifi = useCallback(
+    async (targetIp = ipAddress) => {
+      setErrorMsg(null);
+      addLog("SYS", `Attempting connection to ESP32 Wi-Fi @ http://${targetIp}`);
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+        const res = await fetch(`http://${targetIp}/`, {
+          signal: controller.signal,
+          mode: "cors",
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          setIsConnected(true);
+          setConnectionMode("wifi");
+          setPortInfo({
+            mode: "Wi-Fi AP",
+            ipAddress: targetIp,
+            ssid: "StrobeLight_AP",
+          });
+          addLog("SYS", `SUCCESSFULLY CONNECTED via Wi-Fi @ http://${targetIp}`);
+          return true;
+        } else {
+          throw new Error(`HTTP Status ${res.status}`);
+        }
+      } catch (err) {
+        console.error("Wi-Fi connection error:", err);
+        let msg = `Wi-Fi connection failed: Ensure you are connected to "StrobeLight_AP" network.`;
+        setErrorMsg(msg);
+        addLog("ERR", msg);
+        setIsConnected(false);
+        return false;
+      }
+    },
+    [ipAddress, addLog],
+  );
+
+  // Disconnect Wi-Fi
+  const disconnectWifi = useCallback(() => {
+    setIsConnected(false);
+    setPortInfo(null);
+    addLog("SYS", "DISCONNECTED from Wi-Fi.");
+  }, [addLog]);
+
+  // Connect USB Serial Port
   const connectPort = useCallback(
     async (selectedBaud = baudRate) => {
+      if (connectionMode === "wifi") {
+        return connectWifi();
+      }
+
       if (!isWebSerialSupported) {
-        setErrorMsg(
-          "Web Serial API is not supported in this browser/environment.",
-        );
+        setErrorMsg("Web Serial API is not supported in this browser/environment.");
         return false;
       }
 
-      // Ensure selectedBaud is a valid number (handles React event objects being passed from onClick={onConnect})
       let targetBaud = 115200;
-      if (
-        typeof selectedBaud === "number" &&
-        !isNaN(selectedBaud) &&
-        selectedBaud > 0
-      ) {
+      if (typeof selectedBaud === "number" && !isNaN(selectedBaud) && selectedBaud > 0) {
         targetBaud = selectedBaud;
-      } else if (
-        typeof selectedBaud === "string" &&
-        !isNaN(Number(selectedBaud))
-      ) {
+      } else if (typeof selectedBaud === "string" && !isNaN(Number(selectedBaud))) {
         targetBaud = Number(selectedBaud);
-      } else if (
-        typeof baudRate === "number" &&
-        !isNaN(baudRate) &&
-        baudRate > 0
-      ) {
+      } else if (typeof baudRate === "number" && !isNaN(baudRate) && baudRate > 0) {
         targetBaud = baudRate;
       }
 
@@ -179,30 +217,24 @@ export function useSerial() {
         await selectedPort.open({ baudRate: targetBaud });
 
         try {
-          await selectedPort.setSignals({
-            dataTerminalReady: true,
-            requestToSend: false,
-          });
+          await selectedPort.setSignals({ dataTerminalReady: true, requestToSend: false });
         } catch (sigErr) {
           console.warn("Could not set DTR/RTS signals:", sigErr);
         }
 
         setPort(selectedPort);
         setIsConnected(true);
+        setConnectionMode("usb");
 
         const info = selectedPort.getInfo ? selectedPort.getInfo() : {};
         setPortInfo({
-          usbVendorId: info.usbVendorId
-            ? `0x${info.usbVendorId.toString(16).toUpperCase()}`
-            : "N/A",
-          usbProductId: info.usbProductId
-            ? `0x${info.usbProductId.toString(16).toUpperCase()}`
-            : "N/A",
+          mode: "USB Serial",
+          usbVendorId: info.usbVendorId ? `0x${info.usbVendorId.toString(16).toUpperCase()}` : "N/A",
+          usbProductId: info.usbProductId ? `0x${info.usbProductId.toString(16).toUpperCase()}` : "N/A",
           baudRate: targetBaud,
         });
 
         addLog("SYS", `SUCCESSFULLY CONNECTED @ ${targetBaud} baud.`);
-
         readSerialLoop(selectedPort);
         return true;
       } catch (err) {
@@ -210,20 +242,11 @@ export function useSerial() {
         let rawMsg = err.message || "Failed to connect to serial port.";
         let friendlyMsg = rawMsg;
 
-        if (
-          rawMsg.includes("No port selected") ||
-          rawMsg.includes("User cancelled")
-        ) {
-          friendlyMsg =
-            'Port selection cancelled. Click "Connect Light" to select your ESP32 COM port.';
+        if (rawMsg.includes("No port selected") || rawMsg.includes("User cancelled")) {
+          friendlyMsg = 'Port selection cancelled. Click "Connect Light" to select your ESP32 COM port.';
           addLog("SYS", friendlyMsg);
-        } else if (
-          rawMsg.includes("Failed to open") ||
-          rawMsg.includes("Access denied") ||
-          rawMsg.includes("already open")
-        ) {
-          friendlyMsg =
-            "COM Port is locked or in use by another program (e.g. Arduino IDE Serial Monitor). Please close Arduino IDE Serial Monitor and retry.";
+        } else if (rawMsg.includes("Failed to open") || rawMsg.includes("Access denied") || rawMsg.includes("already open")) {
+          friendlyMsg = "COM Port is locked or in use by another program (e.g. Arduino IDE Serial Monitor). Please close Arduino IDE Serial Monitor and retry.";
           addLog("ERR", friendlyMsg);
         } else {
           addLog("ERR", `Connection Failed: ${rawMsg}`);
@@ -234,11 +257,16 @@ export function useSerial() {
         return false;
       }
     },
-    [baudRate, isWebSerialSupported, addLog, readSerialLoop],
+    [baudRate, connectionMode, isWebSerialSupported, addLog, readSerialLoop, connectWifi],
   );
 
-  // Disconnect Port
+  // Disconnect Port / Connection
   const disconnectPort = useCallback(async () => {
+    if (connectionMode === "wifi") {
+      disconnectWifi();
+      return;
+    }
+
     keepReadingRef.current = false;
 
     if (readerRef.current) {
@@ -263,16 +291,50 @@ export function useSerial() {
     setPort(null);
     setIsConnected(false);
     setPortInfo(null);
-  }, [port, addLog]);
+  }, [connectionMode, port, addLog, disconnectWifi]);
 
-  // Send Command String to ESP32
+  // Unified Send Command (Handles USB and Wi-Fi)
   const sendCommand = useCallback(
     async (rawText) => {
+      lastTxTimeRef.current = Date.now();
+
+      // MODE A: Wi-Fi HTTP Transmission
+      if (connectionMode === "wifi") {
+        if (!isConnected) {
+          addLog("ERR", `Cannot send "${rawText}": Wi-Fi is not connected.`);
+          return false;
+        }
+
+        try {
+          const url = `http://${ipAddress}/cmd?val=${encodeURIComponent(rawText)}`;
+          addLog("TX", `[Wi-Fi] ${rawText}`);
+          setTxCount((c) => c + 1);
+
+          const res = await fetch(url);
+          const responseText = await res.text();
+          const latency = Date.now() - lastTxTimeRef.current;
+
+          setRxCount((c) => c + 1);
+          setRxBytes((b) => b + responseText.length);
+          addLog("RX", `[Wi-Fi] ${responseText}`);
+
+          if (responseText.includes("ACK")) {
+            setLastAck(responseText);
+            setLastAckTime(new Date().toLocaleTimeString());
+            setAckCount((ac) => ac + 1);
+            setLastLatencyMs(latency);
+          }
+          return true;
+        } catch (err) {
+          console.error("Wi-Fi send error:", err);
+          addLog("ERR", `Wi-Fi TX Error: ${err.message}`);
+          return false;
+        }
+      }
+
+      // MODE B: USB Serial Transmission
       if (!port || !port.writable) {
-        addLog(
-          "ERR",
-          `Cannot send "${rawText}": Serial port is not connected.`,
-        );
+        addLog("ERR", `Cannot send "${rawText}": Serial port is not connected.`);
         return false;
       }
 
@@ -282,7 +344,6 @@ export function useSerial() {
         const textToSend = rawText + lineEnding;
         const encoded = encoder.encode(textToSend);
 
-        lastTxTimeRef.current = Date.now();
         await writer.write(encoded);
         writer.releaseLock();
 
@@ -296,7 +357,7 @@ export function useSerial() {
         return false;
       }
     },
-    [port, lineEnding, addLog],
+    [connectionMode, isConnected, ipAddress, port, lineEnding, addLog],
   );
 
   // Reset metrics counters
@@ -320,6 +381,12 @@ export function useSerial() {
   }, [isConnected, disconnectPort]);
 
   return {
+    connectionMode,
+    setConnectionMode,
+    ipAddress,
+    setIpAddress,
+    connectWifi,
+    disconnectWifi,
     isWebSerialSupported,
     isConnected,
     connectPort,
