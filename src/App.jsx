@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useSerial } from "./hooks/useSerial";
 import { Header } from "./components/Header";
 import { MinimalUserDashboard } from "./components/MinimalUserDashboard";
@@ -7,6 +7,10 @@ import { DevAuthModal } from "./components/DevAuthModal";
 
 export function App() {
   const {
+    connectionMode,
+    setConnectionMode,
+    ipAddress,
+    setIpAddress,
     isWebSerialSupported,
     isConnected,
     connectPort,
@@ -32,7 +36,7 @@ export function App() {
     portInfo,
   } = useSerial();
 
-  const [activeTab, setActiveTab] = useState("user"); // 'user' or 'dev'
+  const [activeTab, setActiveTab] = useState("user");
   const [isDevUnlocked, setIsDevUnlocked] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -65,7 +69,7 @@ export function App() {
     setActiveTab("user");
   };
 
-  // Send parameters to hardware (memoized callback)
+  // Send parameters to hardware
   const handleTransmit = React.useCallback(
     (intVal = intensity, freqVal = frequency) => {
       const cmdStr = `${intVal},${freqVal}`;
@@ -74,7 +78,7 @@ export function App() {
     [intensity, frequency, sendCommand],
   );
 
-  // Turn off light completely (memoized callback)
+  // Turn off light completely
   const handleTurnOff = React.useCallback(() => {
     sendCommand("0,0");
   }, [sendCommand]);
@@ -87,7 +91,7 @@ export function App() {
         margin: "0 auto",
       }}
     >
-      {/* Minimal Header */}
+      {/* Minimal Header with Wi-Fi / USB Switcher */}
       <Header
         isConnected={isConnected}
         onConnect={connectPort}
@@ -98,6 +102,10 @@ export function App() {
         isDevUnlocked={isDevUnlocked}
         onLockDev={handleLockDev}
         logCount={logs.length}
+        connectionMode={connectionMode}
+        setConnectionMode={setConnectionMode}
+        ipAddress={ipAddress}
+        setIpAddress={setIpAddress}
       />
 
       {/* TAB 1: MINIMALISTIC TIMER-DRIVEN USER DASHBOARD */}

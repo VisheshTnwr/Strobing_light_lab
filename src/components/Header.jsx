@@ -4,9 +4,10 @@ import {
   AlertTriangle,
   Power,
   Sliders,
-  Wrench,
   Lock,
   Unlock,
+  Wifi,
+  Usb,
 } from "lucide-react";
 
 export function Header({
@@ -19,6 +20,10 @@ export function Header({
   isDevUnlocked,
   onLockDev,
   logCount,
+  connectionMode,
+  setConnectionMode,
+  ipAddress,
+  setIpAddress,
 }) {
   return (
     <header
@@ -30,7 +35,7 @@ export function Header({
         gap: "12px",
       }}
     >
-      {/* Top Bar: Title, Connection & Emergency Off */}
+      {/* Top Bar: Title, Connection Mode, & Controls */}
       <div
         style={{
           display: "flex",
@@ -85,12 +90,86 @@ export function Header({
                   background: isConnected ? "var(--accent-green)" : "#64748b",
                 }}
               ></span>
-              {isConnected ? "Connected & Ready" : "Not Connected"}
+              {isConnected
+                ? `Connected via ${connectionMode === "wifi" ? "Wi-Fi AP" : "USB Serial"}`
+                : "Not Connected"}
             </div>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* Connection Controls & Mode Switcher */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+          {/* Mode Selector Toggle */}
+          {!isConnected && (
+            <div
+              style={{
+                display: "flex",
+                background: "var(--bg-card-hover)",
+                borderRadius: "8px",
+                padding: "3px",
+                border: "1px solid var(--border-color)",
+              }}
+            >
+              <button
+                className="btn"
+                onClick={() => setConnectionMode("wifi")}
+                style={{
+                  padding: "5px 10px",
+                  fontSize: "0.75rem",
+                  borderRadius: "5px",
+                  background: connectionMode === "wifi" ? "var(--accent-cyan)" : "transparent",
+                  color: connectionMode === "wifi" ? "#fff" : "var(--text-muted)",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Wifi size={13} />
+                Wi-Fi AP
+              </button>
+
+              <button
+                className="btn"
+                onClick={() => setConnectionMode("usb")}
+                style={{
+                  padding: "5px 10px",
+                  fontSize: "0.75rem",
+                  borderRadius: "5px",
+                  background: connectionMode === "usb" ? "var(--accent-cyan)" : "transparent",
+                  color: connectionMode === "usb" ? "#fff" : "var(--text-muted)",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <Usb size={13} />
+                USB Serial
+              </button>
+            </div>
+          )}
+
+          {/* Wi-Fi IP input if in Wi-Fi mode */}
+          {!isConnected && connectionMode === "wifi" && (
+            <input
+              type="text"
+              value={ipAddress}
+              onChange={(e) => setIpAddress(e.target.value)}
+              placeholder="192.168.4.1"
+              style={{
+                width: "110px",
+                padding: "6px 8px",
+                fontSize: "0.78rem",
+                borderRadius: "6px",
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-color)",
+                color: "#fff",
+              }}
+              title="ESP32 Access Point IP Address"
+            />
+          )}
+
           {!isConnected ? (
             <button
               className="btn btn-primary"
@@ -98,7 +177,7 @@ export function Header({
               style={{ padding: "8px 16px", fontSize: "0.82rem" }}
             >
               <Power size={15} />
-              Connect Light
+              {connectionMode === "wifi" ? "Connect Wi-Fi" : "Connect Light"}
             </button>
           ) : (
             <button
@@ -131,7 +210,7 @@ export function Header({
         style={{
           display: "flex",
           alignItems: "center",
-          justify: "space-between",
+          justifyContent: "space-between",
           borderTop: "1px solid var(--border-color)",
           paddingTop: "10px",
           flexWrap: "wrap",
