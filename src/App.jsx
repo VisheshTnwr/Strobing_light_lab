@@ -1,9 +1,9 @@
-import React, { useState, useRef } from 'react';
-import { useSerial } from './hooks/useSerial';
-import { Header } from './components/Header';
-import { MinimalUserDashboard } from './components/MinimalUserDashboard';
-import { DevDashboard } from './components/DevDashboard';
-import { DevAuthModal } from './components/DevAuthModal';
+import React, { useState, useRef } from "react";
+import { useSerial } from "./hooks/useSerial";
+import { Header } from "./components/Header";
+import { MinimalUserDashboard } from "./components/MinimalUserDashboard";
+import { DevDashboard } from "./components/DevDashboard";
+import { DevAuthModal } from "./components/DevAuthModal";
 
 export function App() {
   const {
@@ -32,7 +32,7 @@ export function App() {
     portInfo,
   } = useSerial();
 
-  const [activeTab, setActiveTab] = useState('user'); // 'user' or 'dev'
+  const [activeTab, setActiveTab] = useState("user"); // 'user' or 'dev'
   const [isDevUnlocked, setIsDevUnlocked] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -41,14 +41,14 @@ export function App() {
 
   // Handle Tab Switch with Password Check
   const handleSelectTab = (tabName) => {
-    if (tabName === 'dev') {
+    if (tabName === "dev") {
       if (isDevUnlocked) {
-        setActiveTab('dev');
+        setActiveTab("dev");
       } else {
         setIsAuthModalOpen(true);
       }
     } else {
-      setActiveTab('user');
+      setActiveTab("user");
     }
   };
 
@@ -56,28 +56,37 @@ export function App() {
   const handleAuthSuccess = () => {
     setIsDevUnlocked(true);
     setIsAuthModalOpen(false);
-    setActiveTab('dev');
+    setActiveTab("dev");
   };
 
   // Lock Dev Tab & return to User Dashboard
   const handleLockDev = () => {
     setIsDevUnlocked(false);
-    setActiveTab('user');
+    setActiveTab("user");
   };
 
   // Send parameters to hardware (memoized callback)
-  const handleTransmit = React.useCallback((intVal = intensity, freqVal = frequency) => {
-    const cmdStr = `${intVal},${freqVal}`;
-    sendCommand(cmdStr);
-  }, [intensity, frequency, sendCommand]);
+  const handleTransmit = React.useCallback(
+    (intVal = intensity, freqVal = frequency) => {
+      const cmdStr = `${intVal},${freqVal}`;
+      sendCommand(cmdStr);
+    },
+    [intensity, frequency, sendCommand],
+  );
 
   // Turn off light completely (memoized callback)
   const handleTurnOff = React.useCallback(() => {
-    sendCommand('0,0');
+    sendCommand("0,0");
   }, [sendCommand]);
 
   return (
-    <div className="app-container" style={{ maxWidth: activeTab === 'user' ? '950px' : '1500px', margin: '0 auto' }}>
+    <div
+      className="app-container"
+      style={{
+        maxWidth: activeTab === "user" ? "950px" : "1500px",
+        margin: "0 auto",
+      }}
+    >
       {/* Minimal Header */}
       <Header
         isConnected={isConnected}
@@ -92,7 +101,7 @@ export function App() {
       />
 
       {/* TAB 1: MINIMALISTIC TIMER-DRIVEN USER DASHBOARD */}
-      {activeTab === 'user' && (
+      {activeTab === "user" && (
         <MinimalUserDashboard
           isConnected={isConnected}
           onTransmit={handleTransmit}
@@ -105,7 +114,7 @@ export function App() {
       )}
 
       {/* TAB 2: DEV TAB (DEBUG & COMMANDS) */}
-      {activeTab === 'dev' && (
+      {activeTab === "dev" && (
         <DevDashboard
           isConnected={isConnected}
           onConnect={connectPort}

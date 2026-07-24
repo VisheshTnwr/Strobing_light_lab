@@ -1,5 +1,13 @@
-import React from 'react';
-import { Zap, AlertTriangle, Power, Sliders, Wrench, Lock, Unlock } from 'lucide-react';
+import React from "react";
+import {
+  Zap,
+  AlertTriangle,
+  Power,
+  Sliders,
+  Wrench,
+  Lock,
+  Unlock,
+} from "lucide-react";
 
 export function Header({
   isConnected,
@@ -10,44 +18,98 @@ export function Header({
   onSelectTab,
   isDevUnlocked,
   onLockDev,
-  logCount
+  logCount,
 }) {
   return (
-    <header className="card" style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <header
+      className="card"
+      style={{
+        padding: "14px 20px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+      }}
+    >
       {/* Top Bar: Title, Connection & Emergency Off */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 2px 10px var(--accent-cyan-glow)'
-          }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "12px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              width: "36px",
+              height: "36px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #0ea5e9, #0284c7)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 10px var(--accent-cyan-glow)",
+            }}
+          >
             <Zap size={20} color="#fff" />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.15rem', fontWeight: '700', margin: 0, letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>
+            <h1
+              style={{
+                fontSize: "1.15rem",
+                fontWeight: "700",
+                margin: 0,
+                letterSpacing: "-0.02em",
+                fontFamily: "var(--font-heading)",
+              }}
+            >
               Strobing Light Controller
             </h1>
-            <div style={{ fontSize: '0.75rem', color: isConnected ? 'var(--accent-green)' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-              <span className="pulse-dot" style={{ background: isConnected ? 'var(--accent-green)' : '#64748b' }}></span>
-              {isConnected ? 'Connected & Ready' : 'Not Connected'}
+            <div
+              style={{
+                fontSize: "0.75rem",
+                color: isConnected
+                  ? "var(--accent-green)"
+                  : "var(--text-muted)",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                marginTop: "2px",
+              }}
+            >
+              <span
+                className="pulse-dot"
+                style={{
+                  background: isConnected ? "var(--accent-green)" : "#64748b",
+                }}
+              ></span>
+              {isConnected ? "Connected & Ready" : "Not Connected"}
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           {!isConnected ? (
-            <button className="btn btn-primary" onClick={() => onConnect()} style={{ padding: '8px 16px', fontSize: '0.82rem' }}>
+            <button
+              className="btn btn-primary"
+              onClick={() => onConnect()}
+              style={{ padding: "8px 16px", fontSize: "0.82rem" }}
+            >
               <Power size={15} />
               Connect Light
             </button>
           ) : (
-            <button className="btn btn-secondary" onClick={onDisconnect} style={{ padding: '8px 14px', fontSize: '0.8rem', color: 'var(--accent-red)' }}>
+            <button
+              className="btn btn-secondary"
+              onClick={onDisconnect}
+              style={{
+                padding: "8px 14px",
+                fontSize: "0.8rem",
+                color: "var(--accent-red)",
+              }}
+            >
               <Power size={14} />
               Disconnect
             </button>
@@ -56,7 +118,7 @@ export function Header({
           <button
             className="btn btn-danger"
             onClick={onEmergencyStop}
-            style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+            style={{ padding: "8px 16px", fontSize: "0.82rem" }}
           >
             <AlertTriangle size={15} />
             TURN LIGHT OFF
@@ -65,47 +127,65 @@ export function Header({
       </div>
 
       {/* Navigation Tab Bar */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justify: 'space-between',
-        borderTop: '1px solid var(--border-color)',
-        paddingTop: '10px',
-        flexWrap: 'wrap',
-        gap: '8px'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justify: "space-between",
+          borderTop: "1px solid var(--border-color)",
+          paddingTop: "10px",
+          flexWrap: "wrap",
+          gap: "8px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <button
-            className={`btn ${activeTab === 'user' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => onSelectTab('user')}
-            style={{ padding: '6px 14px', fontSize: '0.8rem', borderRadius: '6px' }}
+            className={`btn ${activeTab === "user" ? "btn-primary" : "btn-secondary"}`}
+            onClick={() => onSelectTab("user")}
+            style={{
+              padding: "6px 14px",
+              fontSize: "0.8rem",
+              borderRadius: "6px",
+            }}
           >
             <Sliders size={14} />
             User Dashboard
           </button>
 
           <button
-            className={`btn ${activeTab === 'dev' ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => onSelectTab('dev')}
+            className={`btn ${activeTab === "dev" ? "btn-primary" : "btn-secondary"}`}
+            onClick={() => onSelectTab("dev")}
             style={{
-              padding: '6px 14px',
-              fontSize: '0.8rem',
-              borderRadius: '6px',
-              background: activeTab === 'dev' ? 'linear-gradient(135deg, #8b5cf6, #0ea5e9)' : undefined
+              padding: "6px 14px",
+              fontSize: "0.8rem",
+              borderRadius: "6px",
+              background:
+                activeTab === "dev"
+                  ? "linear-gradient(135deg, #8b5cf6, #0ea5e9)"
+                  : undefined,
             }}
           >
-            {isDevUnlocked ? <Unlock size={14} color="var(--accent-green)" /> : <Lock size={14} color="var(--accent-amber)" />}
+            {isDevUnlocked ? (
+              <Unlock size={14} color="var(--accent-green)" />
+            ) : (
+              <Lock size={14} color="var(--accent-amber)" />
+            )}
             Dev Tab (Debug & Commands)
             {logCount > 0 && (
-              <span style={{
-                fontSize: '0.65rem',
-                background: activeTab === 'dev' ? 'rgba(255,255,255,0.25)' : 'var(--accent-cyan)',
-                color: '#fff',
-                padding: '1px 6px',
-                borderRadius: '4px',
-                marginLeft: '6px',
-                fontWeight: '700'
-              }}>
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  background:
+                    activeTab === "dev"
+                      ? "rgba(255,255,255,0.25)"
+                      : "var(--accent-cyan)",
+                  color: "#fff",
+                  padding: "1px 6px",
+                  borderRadius: "4px",
+                  marginLeft: "6px",
+                  fontWeight: "700",
+                }}
+              >
                 {logCount}
               </span>
             )}
@@ -117,7 +197,12 @@ export function Header({
           <button
             className="btn btn-secondary"
             onClick={onLockDev}
-            style={{ padding: '4px 12px', fontSize: '0.75rem', color: 'var(--accent-amber)', borderRadius: '6px' }}
+            style={{
+              padding: "4px 12px",
+              fontSize: "0.75rem",
+              color: "var(--accent-amber)",
+              borderRadius: "6px",
+            }}
             title="Lock Dev Tab and return to User Dashboard"
           >
             <Lock size={13} />
