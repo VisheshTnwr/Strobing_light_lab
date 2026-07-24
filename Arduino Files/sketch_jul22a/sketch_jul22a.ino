@@ -11,7 +11,7 @@
 
 // --- Wi-Fi Access Point Configuration ---
 const char* ap_ssid = "StrobeLight_AP";
-const char* ap_password = "strobe1234"; // Minimum 8 characters. Set to "" for open Wi-Fi
+const char* ap_password = "strobe1234";
 
 // --- Web Server Instance ---
 WebServer server(80);
@@ -25,6 +25,9 @@ const int pwmRes = 8;          // 8-bit resolution (0-255 brightness scale)
 // --- State Variables ---
 int currentIntensity = 0;      // 0 to 255
 float currentFrequency = 0;    // 0 = Solid On. >0 = Strobe in Hz
+
+// --- Duty Tracker to prevent continuous PWM register resets ---
+int lastAppliedDuty = -1;
 
 // --- Timing Variables for Non-Blocking Strobe ---
 unsigned long previousMillis = 0;
@@ -52,6 +55,13 @@ void processCommand(String incomingCommand) {
     currentFrequency = frequencyStr.toFloat();
     
     currentIntensity = constrain(currentIntensity, 0, 255);
+    
+    // Force immediate PWM update on new command receipt
+    if (currentFrequency == 0 || currentIntensity == 0) {
+      writePwm(currentIntensity);
+      lastAppliedDuty = currentIntensity;
+      isLedHighPhase = true;
+    }
     
     Serial.print("ACK: Intensity set to ");
     Serial.print(currentIntensity);
@@ -111,6 +121,7 @@ void setup() {
   
   // Safe default: Light OFF
   writePwm(0);
+  lastAppliedDuty = 0;
   
   // 3. Start Wi-Fi Access Point Mode (AP)
   WiFi.mode(WIFI_AP);
@@ -151,13 +162,18 @@ void loop() {
   }
 
   // ---------------------------------------------------------
-  // TASK 3: Execute Lighting Logic (Non-Blocking Strobe)
+  // TASK 3: Execute Lighting Logic (Glitch-Free Non-Blocking)
   // ---------------------------------------------------------
   if (currentFrequency == 0 || currentIntensity == 0) {
-    writePwm(currentIntensity);
+    // Mode A: Solid Light (or OFF) - Only write if duty changed
+    if (lastAppliedDuty != currentIntensity) {
+      writePwm(currentIntensity);
+      lastAppliedDuty = currentIntensity;
+    }
     isLedHighPhase = true;
   } 
   else {
+    // Mode B: Active Strobing
     unsigned long currentMillis = millis();
     float phaseDuration = 1000.0 / (currentFrequency * 2.0);
     
@@ -165,10 +181,10 @@ void loop() {
       previousMillis = currentMillis;
       isLedHighPhase = !isLedHighPhase;
       
-      if (isLedHighPhase) {
-        writePwm(currentIntensity);
-      } else {
-        writePwm(0);
+      int targetDuty = isLedHighPhase ? currentIntensity : 0;
+      if (lastAppliedDuty != targetDuty) {
+        writePwm(targetDuty);
+        lastAppliedDuty = targetDuty;
       }
     }
   }
