@@ -40,6 +40,8 @@ body {
   user-select: none;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Custom Minimal Scrollbars */
@@ -62,22 +64,18 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  padding: 20px;
-  gap: 16px;
+  padding: 16px;
+  gap: 14px;
   max-width: 1300px;
   margin: 0 auto;
 }
-
-/* ----------------------------------------------------
-   VERCEL / LINEAR STYLE ULTRA-CLEAN DARK MINIMALIST
-   ---------------------------------------------------- */
 
 /* Sleek Cards */
 .card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -94,7 +92,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   letter-spacing: -0.01em;
 }
 
@@ -103,25 +101,25 @@ input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 6px;
+  height: 8px;
   background: #1e293b;
-  border-radius: 3px;
+  border-radius: 4px;
   outline: none;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--accent-cyan);
-  box-shadow: 0 0 10px var(--accent-cyan-glow);
+  box-shadow: 0 0 12px var(--accent-cyan-glow);
   cursor: pointer;
   transition: transform 0.1s ease, background-color 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
   background: #38bdf8;
 }
 
@@ -131,7 +129,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 10px 16px;
   border-radius: 8px;
   font-family: var(--font-heading);
   font-weight: 600;
@@ -139,6 +137,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
   cursor: pointer;
   border: none;
   transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  min-height: 38px;
 }
 
 .btn-primary {
@@ -178,30 +177,6 @@ input[type="range"]::-webkit-slider-thumb:hover {
   background: linear-gradient(135deg, #f87171, #ef4444);
 }
 
-/* Crisp Status Badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-.badge-connected {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--accent-green);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-}
-
-.badge-disconnected {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--accent-red);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-}
-
 .pulse-dot {
   width: 7px;
   height: 7px;
@@ -214,4 +189,30 @@ input[type="range"]::-webkit-slider-thumb:hover {
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ----------------------------------------------------
+   MOBILE RESPONSIVE STYLES
+   ---------------------------------------------------- */
+@media (max-width: 600px) {
+  .app-container {
+    padding: 8px;
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .btn {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    min-height: 36px;
+  }
+
+  /* Make header elements stack neatly on mobile */
+  header.card {
+    padding: 12px !important;
+  }
 }

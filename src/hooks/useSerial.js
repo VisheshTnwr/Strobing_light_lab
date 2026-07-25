@@ -1,7 +1,37 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { CapacitorHttp, Capacitor } from "@capacitor/core";
+
+// Smart fetch wrapper that uses Capacitor Native HTTP on mobile to bypass Android WebView CORS & Mixed-Content blocks
+async function smartFetch(url, options = {}) {
+  const isNative = typeof Capacitor !== "undefined" && Capacitor.isNativePlatform();
+  if (isNative) {
+    try {
+      const response = await CapacitorHttp.get({
+        url: url,
+        connectTimeout: 4000,
+        readTimeout: 4000,
+      });
+      const ok = response.status >= 200 && response.status < 300;
+      const responseData =
+        typeof response.data === "string"
+          ? response.data
+          : JSON.stringify(response.data || "");
+      return {
+        ok,
+        status: response.status,
+        text: async () => responseData,
+      };
+    } catch (err) {
+      console.error("Native CapacitorHttp error:", err);
+      throw err;
+    }
+  } else {
+    return await fetch(url, options);
+  }
+}
 
 export function useSerial() {
-  const [connectionMode, setConnectionMode] = useState("usb"); // 'usb' or 'wifi'
+  const [connectionMode, setConnectionMode] = useState("wifi"); // Default to 'wifi' for mobile usability
   const [ipAddress, setIpAddress] = useState("192.168.4.1");
   const [port, setPort] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -148,7 +178,7 @@ export function useSerial() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-        const res = await fetch(`http://${targetIp}/`, {
+        const res = await smartFetch(`http://${targetIp}/`, {
           signal: controller.signal,
           mode: "cors",
         });
@@ -169,7 +199,7 @@ export function useSerial() {
         }
       } catch (err) {
         console.error("Wi-Fi connection error:", err);
-        let msg = `Wi-Fi connection failed: Ensure you are connected to "StrobeLight_AP" network.`;
+        let msg = `Wi-Fi connection failed: Ensure mobile Wi-Fi is connected to "StrobeLight_AP" (Password: strobe1234) and Mobile Data is turned off.`;
         setErrorMsg(msg);
         addLog("ERR", msg);
         setIsConnected(false);
@@ -310,7 +340,7 @@ export function useSerial() {
           addLog("TX", `[Wi-Fi] ${rawText}`);
           setTxCount((c) => c + 1);
 
-          const res = await fetch(url);
+          const res = await smartFetch(url);
           const responseText = await res.text();
           const latency = Date.now() - lastTxTimeRef.current;
 
