@@ -80,6 +80,13 @@ dist-electron/
 release/
 *.exe
 
+# Native Android Build Artifacts & Credentials
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+
 # OS generated files
 .DS_Store
 Thumbs.db

@@ -1,0 +1,5 @@
+{
+  "appId": "com.strobinglight.app",
+  "appName": "Strobe Light",
+  "webDir": "dist"
+}
