@@ -24,7 +24,6 @@ export function OscilloscopeView({ intensity, frequency }) {
       ctx.strokeStyle = "#1e293b";
       ctx.lineWidth = 1;
 
-      
       // Horizontal grid lines
       for (let y = 0; y < height; y += 30) {
         ctx.beginPath();
@@ -32,7 +31,7 @@ export function OscilloscopeView({ intensity, frequency }) {
         ctx.lineTo(width, y);
         ctx.stroke();
       }
-
+      
       // Vertical grid lines
       for (let x = 0; x < width; x += 40) {
         ctx.beginPath();
