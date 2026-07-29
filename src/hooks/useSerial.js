@@ -3,7 +3,8 @@ import { CapacitorHttp, Capacitor } from "@capacitor/core";
 
 // Smart fetch wrapper that uses Capacitor Native HTTP on mobile to bypass Android WebView CORS & Mixed-Content blocks
 async function smartFetch(url, options = {}) {
-  const isNative = typeof Capacitor !== "undefined" && Capacitor.isNativePlatform();
+  const isNative =
+    typeof Capacitor !== "undefined" && Capacitor.isNativePlatform();
   if (isNative) {
     try {
       const response = await CapacitorHttp.get({
@@ -173,7 +174,10 @@ export function useSerial() {
   const connectWifi = useCallback(
     async (targetIp = ipAddress) => {
       setErrorMsg(null);
-      addLog("SYS", `Attempting connection to ESP32 Wi-Fi @ http://${targetIp}`);
+      addLog(
+        "SYS",
+        `Attempting connection to ESP32 Wi-Fi @ http://${targetIp}`,
+      );
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4000);
@@ -192,7 +196,10 @@ export function useSerial() {
             ipAddress: targetIp,
             ssid: "StrobeLight_AP",
           });
-          addLog("SYS", `SUCCESSFULLY CONNECTED via Wi-Fi @ http://${targetIp}`);
+          addLog(
+            "SYS",
+            `SUCCESSFULLY CONNECTED via Wi-Fi @ http://${targetIp}`,
+          );
           return true;
         } else {
           throw new Error(`HTTP Status ${res.status}`);
@@ -224,16 +231,29 @@ export function useSerial() {
       }
 
       if (!isWebSerialSupported) {
-        setErrorMsg("Web Serial API is not supported in this browser/environment.");
+        setErrorMsg(
+          "Web Serial API is not supported in this browser/environment.",
+        );
         return false;
       }
 
       let targetBaud = 115200;
-      if (typeof selectedBaud === "number" && !isNaN(selectedBaud) && selectedBaud > 0) {
+      if (
+        typeof selectedBaud === "number" &&
+        !isNaN(selectedBaud) &&
+        selectedBaud > 0
+      ) {
         targetBaud = selectedBaud;
-      } else if (typeof selectedBaud === "string" && !isNaN(Number(selectedBaud))) {
+      } else if (
+        typeof selectedBaud === "string" &&
+        !isNaN(Number(selectedBaud))
+      ) {
         targetBaud = Number(selectedBaud);
-      } else if (typeof baudRate === "number" && !isNaN(baudRate) && baudRate > 0) {
+      } else if (
+        typeof baudRate === "number" &&
+        !isNaN(baudRate) &&
+        baudRate > 0
+      ) {
         targetBaud = baudRate;
       }
 
@@ -247,7 +267,10 @@ export function useSerial() {
         await selectedPort.open({ baudRate: targetBaud });
 
         try {
-          await selectedPort.setSignals({ dataTerminalReady: true, requestToSend: false });
+          await selectedPort.setSignals({
+            dataTerminalReady: true,
+            requestToSend: false,
+          });
         } catch (sigErr) {
           console.warn("Could not set DTR/RTS signals:", sigErr);
         }
@@ -259,8 +282,12 @@ export function useSerial() {
         const info = selectedPort.getInfo ? selectedPort.getInfo() : {};
         setPortInfo({
           mode: "USB Serial",
-          usbVendorId: info.usbVendorId ? `0x${info.usbVendorId.toString(16).toUpperCase()}` : "N/A",
-          usbProductId: info.usbProductId ? `0x${info.usbProductId.toString(16).toUpperCase()}` : "N/A",
+          usbVendorId: info.usbVendorId
+            ? `0x${info.usbVendorId.toString(16).toUpperCase()}`
+            : "N/A",
+          usbProductId: info.usbProductId
+            ? `0x${info.usbProductId.toString(16).toUpperCase()}`
+            : "N/A",
           baudRate: targetBaud,
         });
 
@@ -272,11 +299,20 @@ export function useSerial() {
         let rawMsg = err.message || "Failed to connect to serial port.";
         let friendlyMsg = rawMsg;
 
-        if (rawMsg.includes("No port selected") || rawMsg.includes("User cancelled")) {
-          friendlyMsg = 'Port selection cancelled. Click "Connect Light" to select your ESP32 COM port.';
+        if (
+          rawMsg.includes("No port selected") ||
+          rawMsg.includes("User cancelled")
+        ) {
+          friendlyMsg =
+            'Port selection cancelled. Click "Connect Light" to select your ESP32 COM port.';
           addLog("SYS", friendlyMsg);
-        } else if (rawMsg.includes("Failed to open") || rawMsg.includes("Access denied") || rawMsg.includes("already open")) {
-          friendlyMsg = "COM Port is locked or in use by another program (e.g. Arduino IDE Serial Monitor). Please close Arduino IDE Serial Monitor and retry.";
+        } else if (
+          rawMsg.includes("Failed to open") ||
+          rawMsg.includes("Access denied") ||
+          rawMsg.includes("already open")
+        ) {
+          friendlyMsg =
+            "COM Port is locked or in use by another program (e.g. Arduino IDE Serial Monitor). Please close Arduino IDE Serial Monitor and retry.";
           addLog("ERR", friendlyMsg);
         } else {
           addLog("ERR", `Connection Failed: ${rawMsg}`);
@@ -287,7 +323,14 @@ export function useSerial() {
         return false;
       }
     },
-    [baudRate, connectionMode, isWebSerialSupported, addLog, readSerialLoop, connectWifi],
+    [
+      baudRate,
+      connectionMode,
+      isWebSerialSupported,
+      addLog,
+      readSerialLoop,
+      connectWifi,
+    ],
   );
 
   // Disconnect Port / Connection
@@ -364,7 +407,10 @@ export function useSerial() {
 
       // MODE B: USB Serial Transmission
       if (!port || !port.writable) {
-        addLog("ERR", `Cannot send "${rawText}": Serial port is not connected.`);
+        addLog(
+          "ERR",
+          `Cannot send "${rawText}": Serial port is not connected.`,
+        );
         return false;
       }
 
