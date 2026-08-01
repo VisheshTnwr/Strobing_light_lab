@@ -30,7 +30,6 @@ async function smartFetch(url, options = {}) {
     return await fetch(url, options);
   }
 }
-
 export function useSerial() {
   const [connectionMode, setConnectionMode] = useState("wifi"); // Default to 'wifi' for mobile usability
   const [ipAddress, setIpAddress] = useState("192.168.4.1");
