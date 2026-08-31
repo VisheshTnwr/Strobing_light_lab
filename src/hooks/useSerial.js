@@ -30,8 +30,18 @@ async function smartFetch(url, options = {}) {
     return await fetch(url, options);
   }
 }
+
 export function useSerial() {
-  const [connectionMode, setConnectionMode] = useState("wifi"); // Default to 'wifi' for mobile usability
+  const isWebSerialSupported =
+    typeof navigator !== "undefined" && "serial" in navigator;
+
+  const [connectionMode, setConnectionMode] = useState(() => {
+    // Default to 'usb' on desktop / Chrome / Electron when Web Serial is available
+    if (typeof navigator !== "undefined" && "serial" in navigator) {
+      return "usb";
+    }
+    return "wifi";
+  });
   const [ipAddress, setIpAddress] = useState("192.168.4.1");
   const [port, setPort] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -52,9 +62,6 @@ export function useSerial() {
   const readerRef = useRef(null);
   const keepReadingRef = useRef(false);
   const lastTxTimeRef = useRef(null);
-
-  const isWebSerialSupported =
-    typeof navigator !== "undefined" && "serial" in navigator;
 
   const addLog = useCallback((type, message) => {
     const timeStr = new Date().toLocaleTimeString("en-US", {
@@ -138,6 +145,7 @@ export function useSerial() {
               if (trimmed) {
                 setRxCount((c) => c + 1);
                 addLog("RX", trimmed);
+
                 if (trimmed.includes("ACK") || trimmed.includes("Ready")) {
                   const now = Date.now();
                   setLastAck(trimmed);

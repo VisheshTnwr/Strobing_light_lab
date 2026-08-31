@@ -144,14 +144,31 @@ export function MinimalUserDashboard({
     }}>
       {/* Step 1: Light Parameter Controls */}
       <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           <h2 className="card-title" style={{ margin: 0, fontSize: '1.05rem' }}>
             <Sun size={18} color="var(--accent-amber)" />
             1. Light Settings
           </h2>
-          <span className={`badge ${isRunning ? 'badge-connected' : 'badge-disconnected'}`}>
-            {isRunning ? '🟢 Active Output' : '⚪ Staged for Timer'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className={`badge ${isRunning ? 'badge-connected' : 'badge-disconnected'}`}>
+              {isRunning ? '🟢 Output Active' : '⚪ Standby'}
+            </span>
+            {isConnected && (
+              <button
+                className={`btn ${isRunning ? 'btn-secondary' : 'btn-primary'}`}
+                style={{ padding: '4px 10px', fontSize: '0.75rem' }}
+                onClick={() => {
+                  if (isRunning) {
+                    handlePauseSession();
+                  } else {
+                    handleStartSession();
+                  }
+                }}
+              >
+                {isRunning ? 'Turn OFF' : '⚡ Turn Light ON'}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Intensity / Brightness */}
